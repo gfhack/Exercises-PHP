@@ -1,0 +1,41 @@
+php_value auto_prepend_file "/var/www/quarto/config/application.php"
+
+# Não permite acesso a diretórios
+Options -Indexes
+# Habilita rewrite, só assim é possível redefinir as urls
+RewriteEngine On
+# Map http://localhost/blog/ to /blog/app.
+RewriteRule ^$ /quarto/app/ [L]
+# Map http://localhost/blog/x to /blog/app/x unless there is a x in the web root.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !/app
+RewriteRule ^(.*)$ /quarto/app/$1
+# Add trailing slash to directories without them so DirectoryIndex works.
+# This does not expose the internal URL.
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_FILENAME} !/$
+RewriteRule ^(.*)$ $1/
+# Disable auto-adding slashes to directories without them, since this happens
+# after mod_rewrite and exposes the rewritten internal URL, e.g. turning
+# http://localhost/blog/user into into http://localhost/blog/app/user
+DirectorySlash off
+#############################################################################
+# DESCRIPTION
+# Options +FollowSymLinks
+# must be enabled for any rules to work, this is a security requirement of the
+#rewrite engine.
+# RewriteCond %{REQUEST_FILENAME} !-d
+# If the request is for a real directory
+# RewriteCond %{REQUEST_FILENAME} !-f
+# If the request is for a file that exists already on the server
+# RewriteCond %{REQUEST_FILENAME} !-f
+# This line excludes all URLs pointing to existed files from been added with
+#trailing slash again
+#Files that is not allowed access by the url
+# $ é usado para determinar que deve terminar com o que vem antes, no caso .php
+<Files ~ "^(application|database|.*.inc|_.*.|)\.php$">
+Order allow,deny
+Deny from all
+</Files>
+
